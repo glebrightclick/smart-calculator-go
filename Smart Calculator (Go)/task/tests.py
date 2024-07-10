@@ -3,81 +3,128 @@ from hstest.test_case import TestCase
 
 
 class CalcTest(StageTest):
+    on_exit = 0
+
     def generate(self) -> List[TestCase]:
-        return [TestCase(stdin=["17 9", self.test_1, self.test_2, self.test_3, self.test_4, self.test_5,
-                                self.test_6, self.test_7, self.test_8, self.test_9])]
+        return [
+            TestCase(stdin=["/help", self.test_1_1, self.test_1_2, self.test_1_3,
+                            self.test_1_4, self.test_1_5, self.test_1_6, self.test_1_7]),
+            TestCase(stdin=["", self.test_2_1, self.test_2_2, self.test_2_3, self.test_2_4,
+                            self.test_2_5, self.test_2_6, self.test_2_7])]
 
-    # sum of single digits #####################################################
-    # two positive
-    def test_1(self, output):
+    # test of help command
+    def test_1_1(self, output):
         output = str(output).lower().strip()
-        if "26" != output:
-            return CheckResult.wrong("Your program cannot sum two positive single digits.")
-        return "-2 5"
+        if len(output.split(" ")) <= 1:
+            return CheckResult.wrong("It seems like there wasn't any \"help\" message.")
+        return "123 321"
 
-    # positive and negative
-    def test_2(self, output):
+    # tests of the previous stage ##############################################
+    # sum of two positive
+    def test_1_2(self, output):
         output = str(output).lower().strip()
-        if "3" != output:
-            return CheckResult.wrong("Your program cannot sum positive and negative numbers.")
-        return ""
+        if output != "444":
+            return CheckResult.wrong("The program cannot sum two positive numbers")
+        return "-456 390"
 
-    # input empty string
-    def test_3(self, output):
+    # sum of positive and negative
+    def test_1_3(self, output):
+        output = str(output).lower().strip()
+        if output != "-66":
+            return CheckResult.wrong("The program cannot sum negative and positive number")
+        return "264 -73"
+
+    # sum of positive and negative
+    def test_1_4(self, output):
+        output = str(output).lower().strip()
+        if output != "191":
+            return CheckResult.wrong("The program cannot sum positive and negative number")
+        return "2 -2"
+
+    # zero sum
+    def test_1_5(self, output):
+        output = str(output).lower().strip()
+        if output != "0":
+            return CheckResult.wrong("The problem when sum is equal to 0 has occurred")
+        return "99"
+
+    # input of one positive number
+    def test_1_6(self, output):
+        output = str(output).lower().strip()
+        if output != "99":
+            return CheckResult.wrong("The program printed not the same number that was entered.")
+        return "-221"
+
+    # input of one negative number
+    def test_1_7(self, output):
+        output = str(output).lower().strip()
+        if output != "-221":
+            return CheckResult.wrong("The program printed not the same number that was entered.")
+        self.on_exit = 1
+        return "/exit"
+
+    # sum of several numbers (this stage) ######################################
+    # only positive
+    def test_2_1(self, output):
         output = str(output)
         if len(output) != 0:
-            return CheckResult.wrong("Incorrect response to an empty string. " +
+            return CheckResult.wrong("Incorrect response to an empty string. "
                                      "The program should not print anything.")
-        return "7"
-
-    # input one number
-    def test_4(self, output):
-        output = str(output).lower().strip()
-        if "7" != output:
-            return CheckResult.wrong("The program printed not the same number that was entered.")
-        return "100 200"
-
-    # sum of three-digit numbers ###############################################
-    # two positive numbers
-    def test_5(self, output):
-        output = str(output).lower().strip()
-        if "300" != output:
-            return CheckResult.wrong("Your program cannot sum two positive three-digit numbers.")
-        return "500"
-
-    # input one number
-    def test_6(self, output):
-        output = str(output).lower().strip()
-        if "500" != output:
-            return CheckResult.wrong("The program printed not the same number that was entered.")
-        return "300 -400"
+        return "4 6 8"
 
     # positive and negative
-    def test_7(self, output):
+    def test_2_2(self, output):
         output = str(output).lower().strip()
-        if "-100" != output:
-            return CheckResult.wrong("Your program cannot sum positive and negative numbers.")
-        return "-500"
+        if output != "18":
+            return CheckResult.wrong("The program cannot sum more than two numbers.")
+        return "2 -3 -4"
 
-    # input one negative number
-    def test_8(self, output):
+    # only negative
+    def test_2_3(self, output):
         output = str(output).lower().strip()
-        if "-500" != output:
-            return CheckResult.wrong("The program printed not the same number that was entered.")
-        return "1 -1"
+        if output != "-5":
+            return CheckResult.wrong("Incorrect sum of positive and negative numbers.")
+        return "-8 -7 -1"
 
-    # the sum of the numbers is zero
-    def test_9(self, output):
+    # only negative
+    def test_2_4(self, output):
         output = str(output).lower().strip()
-        if "0" != output:
+        if output != "-16":
+            return CheckResult.wrong("Incorrect sum of three negative numbers.")
+        return "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
+
+    # a big amount of numbers
+    def test_2_5(self, output):
+        output = str(output).lower().strip()
+        if output != "20":
+            return CheckResult.wrong("The program cannot process a big amount of numbers.")
+        return "10 20 30 40 50 -10 -20 -30 -40"
+
+    # a big amount of number
+    def test_2_6(self, output):
+        output = str(output).lower().strip()
+        if output != "50":
+            return CheckResult.wrong("The program cannot process a large number of numbers.")
+        return "3 -2 -1"
+
+    # zero sum
+    def test_2_7(self, output):
+        output = str(output).lower().strip()
+        if output != "0":
             return CheckResult.wrong("The problem when sum is equal to 0 has occurred")
+        self.on_exit = 1
         return "/exit"
 
     def check(self, reply: str, attach) -> CheckResult:
-        reply = str(reply).lower().strip()
-        if "bye" not in reply:
-            return CheckResult.wrong("Your program didn't print \"bye\" after entering \"/exit\".")
-        return CheckResult.correct()
+        if self.on_exit:
+            reply = reply.strip().lower().split('\n')
+            self.on_exit = False
+            if 'bye' not in reply[-1]:
+                return CheckResult.wrong("Your program didn't print \"bye\" after entering \"/exit\".")
+            else:
+                return CheckResult.correct()
+        else:
+            return CheckResult.wrong("The program ended prematurely")
 
 
 if __name__ == '__main__':
