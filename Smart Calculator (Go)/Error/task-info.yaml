@@ -1,0 +1,13 @@
+type: remote_edu
+custom_name: Error!
+files:
+  - name: main.go
+    visible: true
+    learner_created: false
+  - name: tests.py
+    visible: false
+    learner_created: false
+feedback_link: https://hyperskill.org/projects/278/stages/1412/implement#comment
+check_profile: hyperskill_go
+status: Unchecked
+record: -1
