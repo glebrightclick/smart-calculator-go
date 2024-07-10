@@ -1,44 +1,83 @@
 from hstest.stage_test import *
-from hstest.stage_test import StageTest
-from hstest.test_case import TestCase, SimpleTestCase
+from hstest.test_case import TestCase
 
 
 class CalcTest(StageTest):
     def generate(self) -> List[TestCase]:
-        return [
-            # A set of positive summing tests
-            SimpleTestCase(stdin="0 1", stdout="1",
-                           feedback="The program cannot sum two positive numbers."),
+        return [TestCase(stdin=["17 9", self.test_1, self.test_2, self.test_3, self.test_4, self.test_5,
+                                self.test_6, self.test_7, self.test_8, self.test_9])]
 
-            SimpleTestCase(stdin="1 0 ", stdout="1",
-                           feedback="The program cannot sum two positive numbers. "
-                                    "And there is an extra space after the second number."),
+    # sum of single digits #####################################################
+    # two positive
+    def test_1(self, output):
+        output = str(output).lower().strip()
+        if "26" != output:
+            return CheckResult.wrong("Your program cannot sum two positive single digits.")
+        return "-2 5"
 
-            SimpleTestCase(stdin=" 5 7", stdout="12",
-                           feedback="The program cannot sum two positive numbers. "
-                                    "And there is an extra space before the first number."),
+    # positive and negative
+    def test_2(self, output):
+        output = str(output).lower().strip()
+        if "3" != output:
+            return CheckResult.wrong("Your program cannot sum positive and negative numbers.")
+        return ""
 
-            SimpleTestCase(stdin="321 34", stdout="355",
-                           feedback="The program cannot sum two three-digit numbers."),
+    # input empty string
+    def test_3(self, output):
+        output = str(output)
+        if len(output) != 0:
+            return CheckResult.wrong("Incorrect response to an empty string. " +
+                                     "The program should not print anything.")
+        return "7"
 
-            # sum of positive and negative number
-            SimpleTestCase(stdin="-2 5", stdout="3",
-                           feedback="The program cannot sum negative and positive number."),
+    # input one number
+    def test_4(self, output):
+        output = str(output).lower().strip()
+        if "7" != output:
+            return CheckResult.wrong("The program printed not the same number that was entered.")
+        return "100 200"
 
-            SimpleTestCase(stdin="3 -1", stdout="2",
-                           feedback="The program cannot sum negative and positive number."),
+    # sum of three-digit numbers ###############################################
+    # two positive numbers
+    def test_5(self, output):
+        output = str(output).lower().strip()
+        if "300" != output:
+            return CheckResult.wrong("Your program cannot sum two positive three-digit numbers.")
+        return "500"
 
-            # sum of two negative numbers
-            SimpleTestCase(stdin="-234 -123", stdout="-357",
-                           feedback="Your program cannot sum two negative numbers."),
+    # input one number
+    def test_6(self, output):
+        output = str(output).lower().strip()
+        if "500" != output:
+            return CheckResult.wrong("The program printed not the same number that was entered.")
+        return "300 -400"
 
-            # test of zero-sum
-            SimpleTestCase(stdin="-5 5", stdout="0",
-                           feedback="There is a problem when the sum is equal to 0."),
-        ]
+    # positive and negative
+    def test_7(self, output):
+        output = str(output).lower().strip()
+        if "-100" != output:
+            return CheckResult.wrong("Your program cannot sum positive and negative numbers.")
+        return "-500"
+
+    # input one negative number
+    def test_8(self, output):
+        output = str(output).lower().strip()
+        if "-500" != output:
+            return CheckResult.wrong("The program printed not the same number that was entered.")
+        return "1 -1"
+
+    # the sum of the numbers is zero
+    def test_9(self, output):
+        output = str(output).lower().strip()
+        if "0" != output:
+            return CheckResult.wrong("The problem when sum is equal to 0 has occurred")
+        return "/exit"
 
     def check(self, reply: str, attach) -> CheckResult:
-        return CheckResult(reply.strip() == str(attach).strip(), "")
+        reply = str(reply).lower().strip()
+        if "bye" not in reply:
+            return CheckResult.wrong("Your program didn't print \"bye\" after entering \"/exit\".")
+        return CheckResult.correct()
 
 
 if __name__ == '__main__':
