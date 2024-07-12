@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -11,38 +10,50 @@ import (
 )
 
 /*
- * Write a program that reads two numbers in a loop and prints the sum in the standard output.
- * The program should print the same number if a user enters only a single number.
- * If a user enters an empty line, the program should ignore it and continue the loop until the user enters a number.
- * When the command /exit is entered, the program must print "Bye!" (without quotes), and then stop.
- * Add to the calculator the ability to read an unlimited sequence of numbers.
- * Add a /help command to print some information about the program.
- * If you encounter an empty line, do not output anything.
+ * Now, you need to consider the reaction of the calculator when users enter expressions in the wrong format.
+ * The program should only accept numbers, a plus + sign , a minus - sign , and two commands: /exit and /help.
+ * It cannot accept all other characters, and it is necessary to warn the user about this.
  */
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		input := scanner.Text()
 
-		switch input {
-		case "/exit":
-			{
-				fmt.Print("Bye!")
+		switch {
+		case strings.HasPrefix(input, "/"):
+			if commands(input) {
 				return
 			}
-		case "/help":
-			{
-				fmt.Print(
-					"The program calculates the sum of numbers\n" +
-						"Write down an expression contains of numbers (positive and negative) and operators\n",
-				)
-			}
-		case "":
-			break
 		default:
 			handle(input)
 		}
 	}
+}
+
+/**
+ * returns true if application should be exited
+ */
+func commands(input string) bool {
+	switch input {
+	case "/exit":
+		{
+			fmt.Print("Bye!")
+			return true
+		}
+	case "/help":
+		{
+			fmt.Println(
+				"The program calculates the sum of numbers\n" +
+					"Write down an expression contains of numbers (positive and negative) and operators",
+			)
+		}
+	default:
+		{
+			fmt.Println("Unknown command")
+		}
+	}
+
+	return false
 }
 
 func format(input string) string {
@@ -80,38 +91,47 @@ func format(input string) string {
 	return input
 }
 
+func isValidOperator(input string) bool {
+	return input == "+" || input == "-"
+}
+
 func handle(input string) {
+	if len(input) == 0 {
+		return
+	}
+
 	// remove duplicate space chars
 	input = format(input)
-
+	// split expression by elements
 	expression := strings.Split(input, " ")
-	if len(expression) == 1 {
-		number, err := strconv.Atoi(input)
+	// set result to 0 and default operator is "+" to handle first number
+	sum, operator := 0, "+"
+	for _, element := range expression {
+		number, err := strconv.Atoi(element)
 		if err != nil {
-			return
-		}
-
-		fmt.Println(number)
-	} else {
-		sum, operator := 0, "+"
-		for _, element := range expression {
-			number, err := strconv.Atoi(element)
-			if err != nil {
-				// if number was evaluated, it's operator
+			// if number was evaluated, it's operator
+			if isValidOperator(element) {
 				operator = element
 				continue
-			}
-
-			switch operator {
-			case "+":
-				sum += number
-			case "-":
-				sum -= number
-			default:
-				log.Fatal("Unexpected operator")
+			} else {
+				fmt.Println("Invalid expression")
+				return
 			}
 		}
 
-		fmt.Println(sum)
+		// at this point, number is correct
+		switch operator {
+		case "+":
+			sum += number
+		case "-":
+			sum -= number
+		default:
+			fmt.Println("Invalid expression")
+			return
+		}
+		// erase operator
+		operator = ""
 	}
+
+	fmt.Println(sum)
 }
