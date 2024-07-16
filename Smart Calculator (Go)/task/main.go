@@ -2,12 +2,20 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 )
+
+type expression struct {
+	// original input from the user
+	input string
+	// variables and their values
+	variables map[string]int
+}
 
 /*
  * Now, you need to consider the reaction of the calculator when users enter expressions in the wrong format.
@@ -16,6 +24,7 @@ import (
  */
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
+	expression := expression{variables: make(map[string]int)}
 	for scanner.Scan() {
 		input := scanner.Text()
 
@@ -25,7 +34,16 @@ func main() {
 				return
 			}
 		default:
-			handle(input)
+			// new expression input
+			expression.input = input
+			// if error occurred, display an error
+			if result, err := handle(expression); err != nil {
+				fmt.Println(err)
+				continue
+				// otherwise, display result if not empty
+			} else if len(result) > 0 {
+				fmt.Println(result)
+			}
 		}
 	}
 }
@@ -58,8 +76,9 @@ func commands(input string) bool {
 
 func format(input string) string {
 	// 1. space formatting
-	spaces := regexp.MustCompile(`\s+`)
-	input = spaces.ReplaceAllString(input, " ")
+	input = strings.TrimSpace(input)
+	input = regexp.MustCompile(`(=)`).ReplaceAllString(input, ` $1 `)
+	input = regexp.MustCompile(`\s+`).ReplaceAllString(input, " ")
 
 	// 2. minuses / pluses formatting
 	pluses := regexp.MustCompile(`\++`)
@@ -95,27 +114,68 @@ func isValidOperator(input string) bool {
 	return input == "+" || input == "-"
 }
 
-func handle(input string) {
-	if len(input) == 0 {
-		return
+func isIdentifier(identifier string) bool {
+	return regexp.MustCompile(`[a-zA-Z]+`).MatchString(identifier)
+}
+
+func isValidIdentifier(identifier string) bool {
+	return regexp.MustCompile(`^[a-zA-Z]+$`).MatchString(identifier)
+}
+
+func isAssignment(input string) bool {
+	return strings.Contains(input, "=")
+}
+
+func handleAssignment(expression expression) error {
+	input := strings.Split(expression.input, " = ")
+	if len(input) != 2 {
+		return errors.New("Invalid assignment")
 	}
 
-	// remove duplicate space chars
-	input = format(input)
-	// split expression by elements
-	expression := strings.Split(input, " ")
+	variable, evaluation := input[0], input[1]
+	if !isValidIdentifier(variable) {
+		return errors.New("Invalid identifier")
+	}
+
+	var result int
+	var err error
+	if result, err = handleEvaluation(expression, evaluation, true); err != nil {
+		return err
+	}
+
+	// if identifier is correct and err is nil, result variable has correct result
+	expression.variables[variable] = result
+	return nil
+}
+
+func handleEvaluation(expression expression, evaluation string, isAssignment bool) (int, error) {
+	parts := strings.Split(evaluation, " ")
 	// set result to 0 and default operator is "+" to handle first number
 	sum, operator := 0, "+"
-	for _, element := range expression {
+	for _, element := range parts {
 		number, err := strconv.Atoi(element)
 		if err != nil {
-			// if number was evaluated, it's operator
-			if isValidOperator(element) {
+			// if element is valid variable, pick its value and save it to number
+			if isIdentifier(element) {
+				if !isValidIdentifier(element) {
+					if isAssignment {
+						return 0, errors.New("Invalid assignment")
+					}
+					return 0, errors.New("Invalid identifier")
+				}
+
+				value, ok := expression.variables[element]
+				if !ok {
+					return 0, errors.New("Unknown variable")
+				}
+
+				number = value
+				// if number was evaluated, it's operator
+			} else if isValidOperator(element) {
 				operator = element
 				continue
 			} else {
-				fmt.Println("Invalid expression")
-				return
+				return 0, errors.New("Invalid expression")
 			}
 		}
 
@@ -126,12 +186,35 @@ func handle(input string) {
 		case "-":
 			sum -= number
 		default:
-			fmt.Println("Invalid expression")
-			return
+			return 0, errors.New("Invalid expression")
 		}
 		// erase operator
 		operator = ""
 	}
 
-	fmt.Println(sum)
+	return sum, nil
+}
+
+// returns feedback to display and error
+func handle(expression expression) (string, error) {
+	if len(expression.input) == 0 {
+		return "", nil
+	}
+
+	// remove duplicate space chars
+	expression.input = format(expression.input)
+	// split expression by elements
+	if isAssignment(expression.input) {
+		return "", handleAssignment(expression)
+	} else {
+		var result int
+		var err error
+		if result, err = handleEvaluation(expression, expression.input, false); err != nil {
+			return "", err
+		}
+
+		return strconv.Itoa(result), nil
+	}
+
+	return "", errors.New("Unexpected error")
 }
