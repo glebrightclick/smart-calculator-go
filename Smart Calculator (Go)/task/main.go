@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"regexp"
 	"strconv"
@@ -76,7 +77,7 @@ func commands(input string) bool {
 
 func format(input string) string {
 	// 1. space formatting
-	input = regexp.MustCompile(`(\+|-|=|\*|\(|\))`).ReplaceAllString(input, ` $1 `)
+	input = regexp.MustCompile(`(\+|-|=|\*|\(|\)|\^)`).ReplaceAllString(input, ` $1 `)
 	input = regexp.MustCompile(`\s+`).ReplaceAllString(input, " ")
 	input = strings.TrimSpace(input)
 
@@ -105,7 +106,7 @@ func format(input string) string {
 }
 
 func isValidOperator(input string) bool {
-	return input == "+" || input == "-" || input == "*" || input == "/"
+	return input == "+" || input == "-" || input == "*" || input == "/" || input == "^"
 }
 
 func isIdentifier(identifier string) bool {
@@ -157,7 +158,7 @@ func isValidNumber(input string) bool {
 
 func toPostfix(infix []string) ([]string, error) {
 	result, stack, i, j := make([]string, len(infix)), make([]string, len(infix)), 0, 0
-	precedence := map[string]int{"+": 1, "-": 1, "*": 2, "/": 2}
+	precedence := map[string]int{"+": 1, "-": 1, "*": 2, "/": 2, "^": 3}
 	for _, element := range infix {
 		switch {
 		// Add operands (numbers and variables) to the result (postfix notation) as they arrive.
@@ -275,6 +276,8 @@ func handleEvaluation(expression expression, evaluation string, isAssignment boo
 				value = number1 * number2
 			case "/":
 				value = number1 / number2
+			case "^":
+				value = int(math.Pow(float64(number1), float64(number2)))
 			default:
 				return 0, errors.New("Invalid operator")
 			}
