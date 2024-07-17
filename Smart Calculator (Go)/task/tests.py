@@ -1,253 +1,190 @@
 from hstest.stage_test import *
-from hstest.test_case import TestCase
-
-CheckResult.correct = lambda: CheckResult(True, '')
-CheckResult.wrong = lambda feedback: CheckResult(False, feedback)
+from hstest.test_case import TestCase, SimpleTestCase
 
 
 class CalcTest(StageTest):
     on_exit = False
 
     def generate(self) -> List[TestCase]:
-        return [TestCase(stdin=['/help', self.test_1_1, self.test_1_2]),
-                TestCase(stdin=['5 + 1 + 4', self.test_2_1, self.test_2_2, self.test_2_3,
-                                self.test_2_4, self.test_2_5]),
-                TestCase(stdin=['n = 5', self.test_3_1, self.test_3_2, self.test_3_3, self.test_3_4, self.test_3_5,
-                                self.test_3_6, self.test_3_7, self.test_3_8, self.test_3_9,
-                                self.test_3_10, self.test_3_11]),
-                TestCase(stdin=['a = 9\nb=2\nc = 1', self.test_4_1, self.test_4_2, self.test_4_3, self.test_4_4,
-                                self.test_4_5, self.test_4_6]),
-                # new test cases for uppercase variables
-                TestCase(stdin=['a  =  3\nb= 4\nc =5', self.test_new_1, self.test_new_2, self.test_new_3,
-                                self.test_new_4, self.test_new_5, self.test_new_6, self.test_new_7, self.test_new_8]),
-                TestCase(stdin=['var1 = 1', self.test_5_1, self.test_5_2, self.test_5_3, self.test_5_4,
-                                self.test_5_5, self.test_5_6])]
+        return [
+            TestCase(stdin=['/help', self.test_1_1, self.test_1_2, self.test_1_3, self.test_1_4, self.test_1_5,
+                            self.test_1_6, self.test_1_7, self.test_1_9, self.test_1_10, self.test_1_11,
+                            self.test_1_12, self.test_1_13]),
+            # new test cases for uppercase variables
+            TestCase(stdin=['a  =  3\nb= 4\nc =5', self.test_new_1, self.test_new_2, self.test_new_3,
+                            self.test_new_4, self.test_new_5, self.test_new_6, self.test_new_7, self.test_new_8]),
+            TestCase(stdin=['variable = 777 \n Variable', self.test_2_1,
+                            self.test_2_2, self.test_2_3, self.test_2_4]),
+            TestCase(stdin=['8 * (2 + 3', self.test_3_1, self.test_3_2, self.test_3_3, self.test_3_4]),
+        ]
 
-    # test of functionality of previous steps #################################
-    # test of /help command
     def test_1_1(self, output):
         output = str(output).lower().strip()
-        if len(output.split(" ")) < 3:
+        if len(output.split(" ")) < 1:
             return CheckResult.wrong("It seems like there wasn't any \"help\" message.")
         return ""
 
-    # input empty string
+    # empty string test
     def test_1_2(self, output):
         output = str(output)
         if len(output) != 0:
             return CheckResult.wrong("Incorrect response to an empty string. "
                                      "The program should not print anything.")
-        self.on_exit = True
-        return "/exit"
+        return "n = 32"
 
-    # sum of positive numbers
-    def test_2_1(self, output):
-        output = str(output).lower().strip()
-        if output != "10":
-            return CheckResult.wrong("The program cannot sum more than two numbers.")
-        return "23 - 17 - 13"
-
-    # sum of numbers with different signs & negative answer
-    def test_2_2(self, output):
-        output = str(output).lower().strip()
-        if output != "-7":
-            return CheckResult.wrong("Incorrect sum of positive and negative numbers.")
+    # assignment test
+    def test_1_3(self, output):
+        if len(output) != 0:
+            return CheckResult.wrong("Unexpected reaction after assignment." +
+                                     "The program should not print anything in this case.")
         return "33 + 20 + 11 + 49 - 32 - 9 + 1 - 80 + 4"
 
-    # testing a big amount of numbers
-    def test_2_3(self, output):
+    # addition and subtraction test
+    def test_1_4(self, output):
         output = str(output).lower().strip()
         if output != "-3":
-            return CheckResult.wrong("The program cannot process a large number of numbers.")
-        return "11 - 7 - 4"
+            return CheckResult.wrong("The program cannot process addition and subtraction operations correctly.")
+        return "33 + 20 + 11 + 49 - n - 9 + 1 - 80 + 4"
 
-    # deleted due to excessive complexity
-    # def test_6(self, output):
+    # addition and subtraction with variables
+    def test_1_5(self, output):
+        output = str(output).lower().strip()
+        if output != "-3":
+            return CheckResult.wrong("The program cannot process addition and subtraction operations correctly.")
+        return "c = n \nc = 2"
+
+    # assignment by a variable and reassignment
+    def test_1_6(self, output):
+        if len(output) != 0:
+            return CheckResult.wrong("Unexpected reaction after assignment."
+                                     "The program should not print anything in this case.")
+        return "  c   "
+
+    # checking the value of variable
+    def test_1_7(self, output):
+        output = str(output).lower().strip()
+        if output != "2":
+            return CheckResult.wrong("The variable stores not a correct value."
+                                     "May be the program could not assign the value of one variable to another one.")
+        return "11 - 13 + c"
+
+    # def test_8(self, output):
     #     output = str(output).lower().strip()
     #     if output != "0":
     #         return CheckResult.wrong("The problem when sum is equal to 0 has occurred.")
-    #     return "5 --- 2 ++++++ 4 -- 2 ---- 1" output = 10
+    #     return "5 --- 2 ++++++ 4 -- 2 ---- 1"  output = 10
+    # multiple operations with several operators
 
-    # the sum is zero
-    def test_2_4(self, output):
+    # zero sum test
+    def test_1_9(self, output):
         output = str(output).lower().strip()
         if output != "0":
             return CheckResult.wrong("The program cannot process multiple operations with several operators.")
         return "/start"
 
-    # test of nonexistent command
-    def test_2_5(self, output):
+    # nonexistent command
+    def test_1_10(self, output):
         output = str(output).lower().strip()
         if "unknown" not in output:
-            return CheckResult.wrong("The program should print \"Unknown command\" " +
+            return CheckResult.wrong("The program should print \"Unknown command\" "
                                      "when a nonexistent command is entered.")
-        self.on_exit = True
-        return "/exit"
+        return "var1 = 1"
 
-    # testing basic assignments
-    def test_3_1(self, output):
-        if len(output) != 0:
-            return CheckResult.wrong("Unexpected reaction after assignment."
-                                     "The program should not print anything in this case.")
-        return "m=2"
-
-    # assignment without spaces
-    def test_3_2(self, output):
-        if len(output) != 0:
-            return CheckResult.wrong("Unexpected reaction after assignment."
-                                     "The program should not print anything in this case.")
-        return "a    =  7"
-
-    # assignment with extra spaces
-    def test_3_3(self, output):
-        if len(output) != 0:
-            return CheckResult.wrong("Unexpected reaction after assignment."
-                                     "The program should not print anything in this case.")
-        return " c=  a "
-
-    # assign the value of another variable
-    def test_3_4(self, output):
-        if len(output) != 0:
-            return CheckResult.wrong("Unexpected reaction after assignment."
-                                     "The program should not print anything in this case.")
-        return "a"
-
-    # test printing values of the variables
-    def test_3_5(self, output):
-        output = str(output).lower().strip()
-        if output != "7":
-            return CheckResult.wrong("The variable stores not a correct value.")
-        return "c"
-
-    def test_3_6(self, output):
-        output = str(output).lower().strip()
-        if output != "7":
-            return CheckResult.wrong("The variable stores not a correct value.")
-        return "test = 0"
-
-    # trying to assign a new variable after other operations
-    def test_3_7(self, output):
-        if len(output) != 0:
-            return CheckResult.wrong("Unexpected reaction after assignment."
-                                     "The program should not print anything in this case.")
-        return "test"
-
-    # checking if the assignment was successful
-    def test_3_8(self, output):
-        output = str(output).lower().strip()
-        if output != "0":
-            return CheckResult.wrong("The variable stores not a correct value.")
-        return "test = 1"
-
-    # trying to reassign
-    def test_3_9(self, output):
-        if len(output) != 0:
-            return CheckResult.wrong("Unexpected reaction after assignment."
-                                     "The program should not print anything in this case.")
-        return "a = test"
-
-    # trying to reassign with the value of another variable
-    def test_3_10(self, output):
-        if len(output.strip()) != 0:
-            return CheckResult.wrong("Unexpected reaction after assignment."
-                                     "The program should not print anything in this case.")
-        return "a"
-
-    def test_3_11(self, output):
-        output = str(output).lower().strip()
-        if output != "1":
-            return CheckResult.wrong("The program could not reassign variable.")
-        self.on_exit = True
-        return "/exit"
-
-    # testing operations with variables
-    # creating some variables (a = 9, b=2 and c=1)
-    # and testing simple adding
-    def test_4_1(self, output):
-        if len(output) != 0:
-            return CheckResult.wrong("Unexpected reaction after assignment."
-                                     "The program should not print anything in this case.")
-        return "a + b"
-
-    def test_4_2(self, output):
-        output = str(output).lower().strip()
-        if output != "11":
-            return CheckResult.wrong("The program cannot perform operations with variables. " +
-                                     "For example, addition operation.")
-        return "b - a"
-
-    # subtracting test
-    def test_4_3(self, output):
-        output = str(output).lower().strip()
-        if output != "-7":
-            return CheckResult.wrong("The program cannot perform operations with variables. " +
-                                     "For example, subtraction operation.")
-        return "b + c"
-
-    # adding a negative number
-    def test_4_4(self, output):
-        output = str(output).lower().strip()
-        if output != "3":
-            return CheckResult.wrong("The program cannot perform operations with variables. " +
-                                     "For example, addition operation.")
-        return "b - c"
-
-    # subtracting a negative number
-    def test_4_5(self, output):
-        output = str(output).lower().strip()
-        if output != "1":
-            return CheckResult.wrong("The program cannot perform operations with variables. " +
-                                     "For example, subtraction operation.")
-        return "a -- b - c + 3 --- a ++ 1"
-
-    # testing multiple operations
-    def test_4_6(self, output):
-        output = str(output).lower().strip()
-        if output != "5":
-            return CheckResult.wrong("The program cannot perform several operations in one line.")
-        self.on_exit = True
-        return "/exit"
-
-    # a set of negative test ##################################################
-    # testing invalid variable name
-    def test_5_1(self, output):
+    # invalid name of variable
+    def test_1_11(self, output):
         output = str(output).lower().strip()
         if "invalid" not in output:
-            return CheckResult.wrong("The name of a variable should contain only Latin letters.")
-        return "var = 2a"
+            return CheckResult.wrong("The value can be an integer number or a value of another variable")
+        return "c = 7 - 1 = 5"
 
-    # testing invalid value
-    def test_5_2(self, output):
-        output = str(output).lower().strip()
-        if "invalid" not in output:
-            return CheckResult.wrong("The value can be an integer number or a value of another variable.")
-        return "c = 7 -  1 = 5"
-
-    # test multiple equalization
-    def test_5_3(self, output):
+    # invalid assignment
+    def test_1_12(self, output):
         output = str(output).lower().strip()
         if "invalid" not in output:
             return CheckResult.wrong("The program could not handle a invalid assignment.")
         return "variable = f"
 
-    # testing assignment by unassigned variable
-    def test_5_4(self, output):
+    # assignment by unassigned variable
+    def test_1_13(self, output):
         output = str(output).lower().strip()
         if "unknown" not in output and "invalid" not in output:
             return CheckResult.wrong("The program should not allow an assignment by unassigned variable.")
-        return "variable = 777"
+        self.on_exit = True
+        return "/exit"
 
-    # checking case sensitivity
-    def test_5_5(self, output):
-        if len(output) != 0:
-            return CheckResult.wrong("Unexpected reaction after assignment. "
-                                     "The program should not print anything in this case.")
-        return "Variable"
-
-    def test_5_6(self, output):
+    # a test suit for the current stage ########################################
+    # test of case sensitivity
+    def test_2_1(self, output):
         output = str(output).lower().strip()
         if "unknown" not in output:
             return CheckResult.wrong("The program should be case sensitive.")
+        return "4 * 3"
+
+    # multiplication operation test
+    def test_2_2(self, output):
+        output = str(output).lower().strip()
+        if output != "12":
+            return CheckResult.wrong("The program has problems with multiplication operation.")
+        return "91 / 13"
+
+    # division operation test
+    def test_2_3(self, output):
+        output = str(output).lower().strip()
+        if output != "7" and output != "7.0":
+            return CheckResult.wrong("The program has problems with division operation.")
+        return " a = 7 \n b = 2\na * 4 / b - (3 - 1)"
+
+    # mixed operations
+    def test_2_4(self, output):
+        output = str(output).lower().strip()
+        if output != "12":
+            return CheckResult.wrong("The program cannot correctly process several operations.")
+        self.on_exit = 1
+        return "/exit"
+
+    # test of an example from the task
+    # def test_2_5(self, output):
+    #     output = str(output).lower().strip()
+    #     if output != "155":
+    #         return CheckResult.wrong("The program cannot reproduce an example from the task.")
+    #     return "3 + (9 + ( 68 * 3/9)) * ((7-2 * 5) / 2) * 6"
+    #     output: -282 input: "7 + 3 * ((4 + 3) * 7 + 1) - 6 / (2 + 1)"
+
+    # test of multi-level parentheses
+    # def test_2_6(self, output):
+    #     output = str(output).replace(".", " ").split()[0].strip()
+    #     if output != "-282":
+    #         return CheckResult.wrong("Program incorrectly solves expressions with multi-level parentheses")
+    #     self.on_exit = True
+    #     return "/exit"
+
+    # negative tests for this stage ############################################
+    # unclosed brackets from the right
+    def test_3_1(self, output):
+        output = str(output).lower().strip()
+        if "invalid" not in output:
+            return CheckResult.wrong("The program could not handle an invalid expression.")
+        return "4 + 5)"
+
+    # unclosed brackets from the left
+    def test_3_2(self, output):
+        output = str(output).lower().strip()
+        if "invalid" not in output:
+            return CheckResult.wrong("The program could not handle an invalid expression.")
+        return "2 ************ 2"
+
+    # sequence of "*"
+    def test_3_3(self, output):
+        output = str(output).lower().strip()
+        if "invalid" not in output:
+            return CheckResult.wrong("A sequence of \"*\" should return \"Invalid expression\".")
+        return "2 // 2"
+
+    # sequence of "/"
+    def test_3_4(self, output):
+        output = str(output).lower().strip()
+        if "invalid" not in output:
+            return CheckResult.wrong("A sequence of \"/\" should return \"Invalid expression\".")
         self.on_exit = True
         return "/exit"
 

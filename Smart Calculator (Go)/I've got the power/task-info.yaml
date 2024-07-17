@@ -8,5 +8,8 @@ files:
     learner_created: false
 feedback_link: https://hyperskill.org/learn/step/21965#comment
 check_profile: hyperskill_go
-status: Unchecked
+status: Solved
+feedback:
+  message: <html>Correct solution</html>
+  time: "Wed, 17 Jul 2024 11:15:32 UTC"
 record: -1
